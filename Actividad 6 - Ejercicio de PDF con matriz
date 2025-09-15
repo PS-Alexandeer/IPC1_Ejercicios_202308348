@@ -1,0 +1,109 @@
+/* 
+Usando como ejemplo el codigo compartido en el repositorio del curso se realizo lo siguiente 
+se desea generar un archivo PDF que contenga una tabla con la información de algunos países.
+La tabla debe tener 3 columnas con los encabezados: País, Capital y Población (millones).
+Los datos deben ser tomados de una matriz estática en Java con la siguiente información: String[][] paises = {
+
+    {"Guatemala", "Ciudad de Guatemala", "17"},
+
+    {"México", "Ciudad de México", "126"},
+
+    {"España", "Madrid", "47"},
+
+    {"Japón", "Tokio", "125"}
+
+};
+*/
+
+#realización de la actividad 
+
+package ejemplo_clase07;
+
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import javax.swing.JOptionPane;
+
+public class PDFGenerator {
+
+    // Matriz estática con los datos
+    static String[][] paises = {
+        {"Guatemala", "Ciudad de Guatemala", "17"},
+        {"México", "Ciudad de México", "126"},
+        {"España", "Madrid", "47"},
+        {"Japón", "Tokio", "125"}
+    };
+
+    // Encabezados de la tabla
+    static String[] headers = {"País", "Capital", "Población (millones)"};
+
+    public static void main(String[] args) {
+        generatePDFWithTable(paises, headers, "Tabla_Paises", "PDFsGenerados");
+    }
+
+    public static String validatePath(String fileName, String outputDirectory) {
+        File dir = new File(outputDirectory);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        File file = new File(outputDirectory, fileName + ".pdf");
+        int count = 1;
+        while (file.exists()) {
+            file = new File(outputDirectory, fileName + "_" + count + ".pdf");
+            count++;
+        }
+        if (count > 1) {
+            JOptionPane.showMessageDialog(null, "El archivo ya existía, se guardó como: " + file.getName());
+        }
+        return file.getAbsolutePath();
+    }
+
+    public static void generatePDFWithTable(String[][] data, String[] headers, String fileName, String outputDirectory) {
+        Document document = new Document();
+        try {
+            String outputPath = validatePath(fileName, outputDirectory);
+            PdfWriter.getInstance(document, new FileOutputStream(outputPath));
+            document.open();
+
+            // Título
+            Font fontTitulo = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD);
+            Paragraph titulo = new Paragraph("Información de Países", fontTitulo);
+            titulo.setAlignment(Element.ALIGN_CENTER);
+            document.add(titulo);
+
+            // Espacio
+            document.add(new Paragraph("\n"));
+
+            // Crear tabla con el número de columnas
+            PdfPTable table = new PdfPTable(headers.length);
+
+            // Agregar encabezados
+            for (String header : headers) {
+                PdfPCell cell = new PdfPCell(new Phrase(header));
+                cell.setBackgroundColor(BaseColor.LIGHT_GRAY);
+                cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                table.addCell(cell);
+            }
+
+            // Agregar los datos
+            for (String[] row : data) {
+                for (String cellData : row) {
+                    PdfPCell cell = new PdfPCell(new Phrase(cellData));
+                    cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                    table.addCell(cell);
+                }
+            }
+
+            document.add(table);
+            document.close();
+            JOptionPane.showMessageDialog(null, "PDF con tabla creado con éxito en: " + outputPath);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error al generar el PDF: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+}
